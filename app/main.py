@@ -20,6 +20,10 @@ app.add_middleware(
     allow_methods=["*"], allow_headers=["*"]
 )
 
+@app.get("/")
+def root():
+    return {"message": "LotoAPI is running!", "status": "ok"}
+
 @app.get("/health")
 def health():
     return {"ok": True, "ts": datetime.utcnow().isoformat()}
