@@ -1,0 +1,16 @@
+name: Warm Cache
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+jobs:
+  warm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Warm today & yesterday
+        run: |
+          D=$(date -u +%F)
+          Y=$(date -u -d "yesterday" +%F)
+          curl -sS "https://TU-API/animalitos?date=$D" >/dev/null || true
+          curl -sS "https://TU-API/loterias?date=$D"  >/dev/null || true
+          curl -sS "https://TU-API/animalitos?date=$Y" >/dev/null || true
+          curl -sS "https://TU-API/loterias?date=$Y"  >/dev/null || true
