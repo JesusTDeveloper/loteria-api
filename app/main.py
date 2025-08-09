@@ -1,11 +1,7 @@
 # Archivo principal de la aplicación
-from fastapi import FastAPI, Query
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from datetime import datetime
-from .scraping import scrape
-from .cache import get as cache_get, set as cache_set
-from .models import AnimalitosResponse, LoteriasResponse
 
 app = FastAPI(
     title="Loto API (MVP)",
@@ -22,28 +18,12 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return {"message": "LotoAPI is running!", "status": "ok"}
+    return {"message": "LotoAPI is running!", "status": "ok", "timestamp": datetime.utcnow().isoformat()}
 
 @app.get("/health")
 def health():
     return {"ok": True, "ts": datetime.utcnow().isoformat()}
 
-@app.get("/animalitos", response_model=AnimalitosResponse)
-def animalitos(date: str = Query(..., regex=r"^\d{4}-\d{2}-\d{2}$")):
-    key = f"animalitos:{date}"
-    cached = cache_get(key)
-    if cached:
-        return cached
-    data = scrape("animalitos", date)
-    cache_set(key, data)
-    return JSONResponse(data)
-
-@app.get("/loterias", response_model=LoteriasResponse)
-def loterias(date: str = Query(..., regex=r"^\d{4}-\d{2}-\d{2}$")):
-    key = f"loterias:{date}"
-    cached = cache_get(key)
-    if cached:
-        return cached
-    data = scrape("loterias", date)
-    cache_set(key, data)
-    return JSONResponse(data)
+@app.get("/test")
+def test():
+    return {"message": "Test endpoint working!", "status": "success"}
