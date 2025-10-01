@@ -1,3 +1,4 @@
 # Dependencias mínimas para web
 fastapi==0.112.2
 uvicorn==0.30.6
+httpx==0.27.2

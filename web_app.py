@@ -4,11 +4,7 @@ Web super ligera para mostrar resultados de lotería
 """
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-import httpx
-import json
-from datetime import datetime, date
-from typing import Optional
+from datetime import datetime
 
 app = FastAPI(title="Loto Web", version="1.0.0")
 
