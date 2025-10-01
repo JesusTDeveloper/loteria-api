@@ -4,9 +4,23 @@ Web super ligera para mostrar resultados de lotería
 """
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from datetime import datetime
+from fastapi.middleware.cors import CORSMiddleware
+from datetime import datetime, date
+from typing import Optional
+import time
+
+from app.models import AnimalitosResponse, LoteriasResponse
+from app.scraping import scrape
+from app.cache import get, set, get_smart, set_smart
 
 app = FastAPI(title="Loto Web", version="1.0.0")
+
+# CORS abierto para consumir desde apps web / Android
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], allow_credentials=False,
+    allow_methods=["*"], allow_headers=["*"]
+)
 
 @app.get("/", response_class=HTMLResponse)
 async def home():
@@ -148,6 +162,33 @@ async def home():
                 color: #1976d2;
                 margin-bottom: 10px;
             }
+            .json-container {
+                background: #f8f9fa;
+                border: 1px solid #e9ecef;
+                border-radius: 10px;
+                padding: 20px;
+                margin-top: 20px;
+            }
+            .json-container h3 {
+                color: #333;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #667eea;
+            }
+            .json-display {
+                background: #2d3748;
+                color: #e2e8f0;
+                padding: 20px;
+                border-radius: 8px;
+                overflow-x: auto;
+                font-family: 'Courier New', monospace;
+                font-size: 14px;
+                line-height: 1.5;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                max-height: 500px;
+                overflow-y: auto;
+            }
             @media (max-width: 768px) {
                 .date-input { flex-direction: column; }
                 .items-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
@@ -165,7 +206,7 @@ async def home():
             <div class="controls">
                 <div class="date-input">
                     <label for="date">📅 Fecha:</label>
-                    <input type="date" id="date" value="2025-01-15">
+                    <input type="date" id="date" value="">
                     <button class="btn" onclick="loadAnimalitos()">🐾 Animalitos</button>
                     <button class="btn" onclick="loadLoterias()">🎲 Loterías</button>
                     <a href="/tutorial" class="btn" style="text-decoration: none; display: inline-block;">📚 Tutorial API</a>
@@ -257,6 +298,9 @@ async def home():
             function renderResults(data) {
                 const resultsDiv = document.getElementById('results');
                 
+                // Mostrar los datos en formato JSON
+                const jsonString = JSON.stringify(data, null, 2);
+                
                 let html = `
                     <div class="stats">
                         <h3>📊 Estadísticas</h3>
@@ -265,51 +309,55 @@ async def home():
                         <p><strong>Fuente:</strong> ${data.source}</p>
                         <p><strong>⚠️ Nota:</strong> Datos de ejemplo para demostración</p>
                     </div>
+                    <div class="json-container">
+                        <h3>📄 Resultados en JSON:</h3>
+                        <pre class="json-display">${jsonString}</pre>
+                    </div>
                 `;
-                
-                data.data.forEach(lottery => {
-                    html += `
-                        <div class="lottery-card">
-                            <div class="lottery-title">${lottery.lottery}</div>
-                            <div class="items-grid">
-                    `;
-                    
-                    lottery.items.forEach(item => {
-                        html += `
-                            <div class="item">
-                                <div class="item-number">${item.number}</div>
-                                <div class="item-animal">${item.animal}</div>
-                                <div class="item-time">${item.time}</div>
-                            </div>
-                        `;
-                    });
-                    
-                    html += `
-                            </div>
-                        </div>
-                    `;
-                });
                 
                 resultsDiv.innerHTML = html;
                 hideLoading();
             }
             
-            function loadAnimalitos() {
+            async function loadAnimalitos() {
                 showLoading();
-                setTimeout(() => {
-                    renderResults(sampleData.animalitos);
-                }, 500); // Simular carga
+                const date = document.getElementById('date').value;
+                
+                try {
+                    const response = await fetch(`/animalitos?date=${date}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    renderResults(data);
+                } catch (error) {
+                    showError('Error al cargar animalitos: ' + error.message);
+                }
             }
             
-            function loadLoterias() {
+            async function loadLoterias() {
                 showLoading();
-                setTimeout(() => {
-                    renderResults(sampleData.loterias);
-                }, 500); // Simular carga
+                const date = document.getElementById('date').value;
+                
+                try {
+                    const response = await fetch(`/loterias?date=${date}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    renderResults(data);
+                } catch (error) {
+                    showError('Error al cargar loterías: ' + error.message);
+                }
             }
             
-            // Cargar animalitos por defecto
+            // Establecer fecha actual por defecto y cargar animalitos
             window.onload = function() {
+                // Establecer fecha actual
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('date').value = today;
+                
+                // Cargar animalitos por defecto
                 loadAnimalitos();
             };
         </script>
@@ -779,6 +827,52 @@ const LotteryScreen = () => {
 async def health():
     """Health check"""
     return {"status": "ok", "timestamp": datetime.utcnow().isoformat()}
+
+@app.get("/animalitos", response_model=AnimalitosResponse)
+def get_animalitos(date: Optional[str] = None):
+    """
+    Obtener resultados de animalitos para una fecha específica.
+    """
+    if date is None:
+        date = datetime.now().strftime("%Y-%m-%d")
+    
+    # Verificar caché inteligente
+    cache_key = f"animalitos_{date}"
+    cached_result = get_smart(cache_key)
+    if cached_result:
+        return cached_result
+    
+    try:
+        result = scrape("animalitos", date)
+        # Guardar en caché inteligente
+        set_smart(cache_key, result)
+        return result
+    except Exception as e:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail=f"Error obteniendo animalitos: {str(e)}")
+
+@app.get("/loterias", response_model=LoteriasResponse)
+def get_loterias(date: Optional[str] = None):
+    """
+    Obtener resultados de loterías para una fecha específica.
+    """
+    if date is None:
+        date = datetime.now().strftime("%Y-%m-%d")
+    
+    # Verificar caché inteligente
+    cache_key = f"loterias_{date}"
+    cached_result = get_smart(cache_key)
+    if cached_result:
+        return cached_result
+    
+    try:
+        result = scrape("loterias", date)
+        # Guardar en caché inteligente
+        set_smart(cache_key, result)
+        return result
+    except Exception as e:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail=f"Error obteniendo loterías: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
