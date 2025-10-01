@@ -828,6 +828,23 @@ async def health():
     """Health check"""
     return {"status": "ok", "timestamp": datetime.utcnow().isoformat()}
 
+@app.get("/debug/url/{kind}/{date}")
+async def debug_url(kind: str, date: str):
+    """Debug endpoint para verificar URLs"""
+    from app.scraping import build_url
+    url = build_url(kind, date)
+    return {"kind": kind, "date": date, "url": url}
+
+@app.get("/debug/test-scrape/{kind}/{date}")
+async def debug_test_scrape(kind: str, date: str):
+    """Debug endpoint para probar scraping"""
+    try:
+        from app.scraping import scrape
+        result = scrape(kind, date)
+        return {"success": True, "result": result}
+    except Exception as e:
+        return {"success": False, "error": str(e), "error_type": type(e).__name__}
+
 @app.get("/animalitos", response_model=AnimalitosResponse)
 def get_animalitos(date: Optional[str] = None):
     """

@@ -30,10 +30,17 @@ def _abs(url: str) -> str:
     return urljoin(BASE_URL, url) if url else url
 
 def _get_html(url: str) -> str:
-    with httpx.Client(headers=HEADERS, timeout=30) as c:
-        r = c.get(url, follow_redirects=True)
-        r.raise_for_status()
-        return r.text
+    try:
+        with httpx.Client(headers=HEADERS, timeout=30) as c:
+            r = c.get(url, follow_redirects=True)
+            r.raise_for_status()
+            return r.text
+    except httpx.HTTPError as e:
+        raise Exception(f"Error HTTP al obtener {url}: {str(e)}")
+    except httpx.TimeoutException:
+        raise Exception(f"Timeout al obtener {url}")
+    except Exception as e:
+        raise Exception(f"Error inesperado al obtener {url}: {str(e)}")
 
 def build_url(kind: str, date_iso: str) -> str:
     if kind == "animalitos":
