@@ -2,7 +2,7 @@
 import os
 
 BASE_URL = os.getenv("LDH_BASE_URL", "https://loteriadehoy.com/")
-CACHE_TTL_SECONDS = int(os.getenv("CACHE_TTL_SECONDS", "300"))  # 5 min
+CACHE_TTL_SECONDS = int(os.getenv("CACHE_TTL_SECONDS", "3600"))  # 1 hora
 USER_AGENT = os.getenv("USER_AGENT", "LotoAPI/1.0 (+contacto@tu-dominio.com)")
 
 # --- Imagenes (mirror) ---
