@@ -2,14 +2,11 @@
 """
 Web super ligera para mostrar resultados de lotería
 """
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from datetime import datetime
 
 app = FastAPI(title="Loto Web", version="1.0.0")
-
-# Configuración
-API_BASE = "https://loteria-api-production.up.railway.app"
 
 @app.get("/", response_class=HTMLResponse)
 async def home():
