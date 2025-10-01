@@ -183,7 +183,59 @@ async def home():
         </div>
 
         <script>
-            const API_BASE = 'https://loteria-api-production.up.railway.app';
+            // Datos de ejemplo para demostración
+            const sampleData = {
+                animalitos: {
+                    date: "2025-01-15",
+                    source: "https://loteriadehoy.com/animalitos/resultados/",
+                    count: 12,
+                    data: [
+                        {
+                            lottery: "Lotto Activo",
+                            items: [
+                                { time: "08:00 AM", number: "29", animal: "Elefante" },
+                                { time: "10:00 AM", number: "15", animal: "Caimán" },
+                                { time: "12:00 PM", number: "33", animal: "León" },
+                                { time: "02:00 PM", number: "07", animal: "Tigre" }
+                            ]
+                        },
+                        {
+                            lottery: "Triple Chance",
+                            items: [
+                                { time: "09:00 AM", number: "42", animal: "Jirafa" },
+                                { time: "11:00 AM", number: "18", animal: "Mono" },
+                                { time: "01:00 PM", number: "25", animal: "Oso" },
+                                { time: "03:00 PM", number: "11", animal: "Panda" }
+                            ]
+                        }
+                    ]
+                },
+                loterias: {
+                    date: "2025-01-15",
+                    source: "https://loteriadehoy.com/loterias/resultados/",
+                    count: 8,
+                    data: [
+                        {
+                            lottery: "Trio Activo",
+                            items: [
+                                { time: "08:30 AM", number: "123", animal: "Triple" },
+                                { time: "10:30 AM", number: "456", animal: "Triple" },
+                                { time: "12:30 PM", number: "789", animal: "Triple" },
+                                { time: "02:30 PM", number: "012", animal: "Triple" }
+                            ]
+                        },
+                        {
+                            lottery: "Terminal Caracas",
+                            items: [
+                                { time: "09:30 AM", number: "345", animal: "Terminal" },
+                                { time: "11:30 AM", number: "678", animal: "Terminal" },
+                                { time: "01:30 PM", number: "901", animal: "Terminal" },
+                                { time: "03:30 PM", number: "234", animal: "Terminal" }
+                            ]
+                        }
+                    ]
+                }
+            };
             
             function showLoading() {
                 document.getElementById('loading').style.display = 'block';
@@ -201,21 +253,6 @@ async def home():
                 hideLoading();
             }
             
-            async function fetchData(endpoint) {
-                const date = document.getElementById('date').value;
-                const url = `${API_BASE}/${endpoint}?date=${date}`;
-                
-                try {
-                    const response = await fetch(url);
-                    if (!response.ok) {
-                        throw new Error(`Error ${response.status}: ${response.statusText}`);
-                    }
-                    return await response.json();
-                } catch (error) {
-                    throw new Error(`Error al cargar datos: ${error.message}`);
-                }
-            }
-            
             function renderResults(data) {
                 const resultsDiv = document.getElementById('results');
                 
@@ -225,6 +262,7 @@ async def home():
                         <p><strong>Fecha:</strong> ${data.date}</p>
                         <p><strong>Total de resultados:</strong> ${data.count}</p>
                         <p><strong>Fuente:</strong> ${data.source}</p>
+                        <p><strong>⚠️ Nota:</strong> Datos de ejemplo para demostración</p>
                     </div>
                 `;
                 
@@ -255,24 +293,18 @@ async def home():
                 hideLoading();
             }
             
-            async function loadAnimalitos() {
+            function loadAnimalitos() {
                 showLoading();
-                try {
-                    const data = await fetchData('animalitos');
-                    renderResults(data);
-                } catch (error) {
-                    showError(error.message);
-                }
+                setTimeout(() => {
+                    renderResults(sampleData.animalitos);
+                }, 500); // Simular carga
             }
             
-            async function loadLoterias() {
+            function loadLoterias() {
                 showLoading();
-                try {
-                    const data = await fetchData('loterias');
-                    renderResults(data);
-                } catch (error) {
-                    showError(error.message);
-                }
+                setTimeout(() => {
+                    renderResults(sampleData.loterias);
+                }, 500); // Simular carga
             }
             
             // Cargar animalitos por defecto
