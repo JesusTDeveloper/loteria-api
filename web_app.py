@@ -168,6 +168,7 @@ async def home():
                     <input type="date" id="date" value="2025-01-15">
                     <button class="btn" onclick="loadAnimalitos()">🐾 Animalitos</button>
                     <button class="btn" onclick="loadLoterias()">🎲 Loterías</button>
+                    <a href="/tutorial" class="btn" style="text-decoration: none; display: inline-block;">📚 Tutorial API</a>
                 </div>
             </div>
             
@@ -312,6 +313,464 @@ async def home():
                 loadAnimalitos();
             };
         </script>
+    </body>
+    </html>
+    """
+
+@app.get("/tutorial", response_class=HTMLResponse)
+async def tutorial():
+    """Tutorial de endpoints para desarrolladores"""
+    return """
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Tutorial API - Loto Web</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                padding: 20px;
+                line-height: 1.6;
+            }
+            .container { 
+                max-width: 1200px; 
+                margin: 0 auto; 
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                overflow: hidden;
+            }
+            .header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 30px;
+                text-align: center;
+            }
+            .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+            .header p { font-size: 1.2em; opacity: 0.9; }
+            .nav {
+                background: #f8f9fa;
+                padding: 15px 30px;
+                border-bottom: 1px solid #e9ecef;
+                display: flex;
+                gap: 20px;
+                flex-wrap: wrap;
+            }
+            .nav a {
+                color: #667eea;
+                text-decoration: none;
+                padding: 8px 16px;
+                border-radius: 5px;
+                transition: background 0.3s;
+            }
+            .nav a:hover { background: #e3f2fd; }
+            .content {
+                padding: 30px;
+            }
+            .section {
+                margin-bottom: 40px;
+            }
+            .section h2 {
+                color: #333;
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #667eea;
+            }
+            .section h3 {
+                color: #555;
+                margin: 20px 0 10px 0;
+            }
+            .endpoint {
+                background: #f8f9fa;
+                border: 1px solid #e9ecef;
+                border-radius: 8px;
+                padding: 20px;
+                margin: 15px 0;
+            }
+            .endpoint-title {
+                font-weight: bold;
+                color: #667eea;
+                font-size: 1.1em;
+                margin-bottom: 10px;
+            }
+            .method {
+                display: inline-block;
+                background: #28a745;
+                color: white;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.8em;
+                margin-right: 10px;
+            }
+            .url {
+                font-family: 'Courier New', monospace;
+                background: #e9ecef;
+                padding: 8px 12px;
+                border-radius: 4px;
+                margin: 10px 0;
+                word-break: break-all;
+            }
+            .code-block {
+                background: #2d3748;
+                color: #e2e8f0;
+                padding: 20px;
+                border-radius: 8px;
+                overflow-x: auto;
+                margin: 15px 0;
+                font-family: 'Courier New', monospace;
+            }
+            .code-block pre { margin: 0; }
+            .response-example {
+                background: #f7fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                padding: 15px;
+                margin: 15px 0;
+            }
+            .android-section {
+                background: #e8f5e8;
+                border: 1px solid #4caf50;
+                border-radius: 8px;
+                padding: 20px;
+                margin: 20px 0;
+            }
+            .android-section h3 {
+                color: #2e7d32;
+                margin-top: 0;
+            }
+            .note {
+                background: #fff3cd;
+                border: 1px solid #ffeaa7;
+                border-radius: 8px;
+                padding: 15px;
+                margin: 15px 0;
+            }
+            .note strong { color: #856404; }
+            .back-btn {
+                display: inline-block;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                text-decoration: none;
+                margin-bottom: 20px;
+                transition: transform 0.2s;
+            }
+            .back-btn:hover { transform: translateY(-2px); }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>📚 Tutorial API</h1>
+                <p>Guía completa para integrar la API en tu app Android</p>
+            </div>
+            
+            <div class="nav">
+                <a href="/">🏠 Inicio</a>
+                <a href="#endpoints">📡 Endpoints</a>
+                <a href="#android">🤖 Android</a>
+                <a href="#ejemplos">💡 Ejemplos</a>
+            </div>
+            
+            <div class="content">
+                <a href="/" class="back-btn">← Volver al Inicio</a>
+                
+                <div class="section" id="endpoints">
+                    <h2>📡 Endpoints Disponibles</h2>
+                    
+                    <div class="endpoint">
+                        <div class="endpoint-title">
+                            <span class="method">GET</span>
+                            Health Check
+                        </div>
+                        <div class="url">https://loteria-api-production.up.railway.app/health</div>
+                        <p>Verifica que la API esté funcionando correctamente.</p>
+                        <div class="response-example">
+                            <strong>Respuesta:</strong>
+                            <pre>{"ok": true, "ts": "2025-01-15T10:30:00.000Z"}</pre>
+                        </div>
+                    </div>
+                    
+                    <div class="endpoint">
+                        <div class="endpoint-title">
+                            <span class="method">GET</span>
+                            Animalitos
+                        </div>
+                        <div class="url">https://loteria-api-production.up.railway.app/animalitos?date=2025-01-15</div>
+                        <p>Obtiene resultados de animalitos para una fecha específica.</p>
+                        <div class="response-example">
+                            <strong>Parámetros:</strong>
+                            <ul>
+                                <li><code>date</code> (opcional): Fecha en formato YYYY-MM-DD. Si no se especifica, usa la fecha actual.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="endpoint">
+                        <div class="endpoint-title">
+                            <span class="method">GET</span>
+                            Loterías
+                        </div>
+                        <div class="url">https://loteria-api-production.up.railway.app/loterias?date=2025-01-15</div>
+                        <p>Obtiene resultados de loterías (triples, trío, terminales) para una fecha específica.</p>
+                        <div class="response-example">
+                            <strong>Parámetros:</strong>
+                            <ul>
+                                <li><code>date</code> (opcional): Fecha en formato YYYY-MM-DD. Si no se especifica, usa la fecha actual.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="endpoint">
+                        <div class="endpoint-title">
+                            <span class="method">GET</span>
+                            Métricas
+                        </div>
+                        <div class="url">https://loteria-api-production.up.railway.app/metrics</div>
+                        <p>Obtiene estadísticas de uso de la API.</p>
+                    </div>
+                </div>
+                
+                <div class="section" id="android">
+                    <h2>🤖 Integración con Android</h2>
+                    
+                    <div class="android-section">
+                        <h3>📱 Configuración en Android Studio</h3>
+                        <p>Para usar la API en tu app Android, necesitas agregar permisos de internet:</p>
+                        <div class="code-block">
+                            <pre>&lt;!-- AndroidManifest.xml --&gt;
+&lt;uses-permission android:name="android.permission.INTERNET" /&gt;</pre>
+                        </div>
+                    </div>
+                    
+                    <div class="android-section">
+                        <h3>🔧 Dependencias Recomendadas</h3>
+                        <p>Agrega estas dependencias a tu <code>build.gradle</code>:</p>
+                        <div class="code-block">
+                            <pre>// build.gradle (Module: app)
+dependencies {
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.11.0'
+}</pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section" id="ejemplos">
+                    <h2>💡 Ejemplos de Código</h2>
+                    
+                    <h3>🌐 Java/Android (Retrofit)</h3>
+                    <div class="code-block">
+                        <pre>// 1. Modelo de datos
+public class LotteryResponse {
+    public String date;
+    public String source;
+    public int count;
+    public List&lt;LotteryData&gt; data;
+}
+
+public class LotteryData {
+    public String lottery;
+    public List&lt;LotteryItem&gt; items;
+}
+
+public class LotteryItem {
+    public String time;
+    public String number;
+    public String animal;
+    public String image;
+}
+
+// 2. Interfaz de API
+public interface LotteryApi {
+    @GET("animalitos")
+    Call&lt;LotteryResponse&gt; getAnimalitos(@Query("date") String date);
+    
+    @GET("loterias")
+    Call&lt;LotteryResponse&gt; getLoterias(@Query("date") String date);
+}
+
+// 3. Configuración Retrofit
+Retrofit retrofit = new Retrofit.Builder()
+    .baseUrl("https://loteria-api-production.up.railway.app/")
+    .addConverterFactory(GsonConverterFactory.create())
+    .build();
+
+LotteryApi api = retrofit.create(LotteryApi.class);
+
+// 4. Uso en tu Activity/Fragment
+api.getAnimalitos("2025-01-15").enqueue(new Callback&lt;LotteryResponse&gt;() {
+    @Override
+    public void onResponse(Call&lt;LotteryResponse&gt; call, Response&lt;LotteryResponse&gt; response) {
+        if (response.isSuccessful()) {
+            LotteryResponse data = response.body();
+            // Procesar datos
+            updateUI(data);
+        }
+    }
+    
+    @Override
+    public void onFailure(Call&lt;LotteryResponse&gt; call, Throwable t) {
+        // Manejar error
+        showError("Error al cargar datos: " + t.getMessage());
+    }
+});</pre>
+                    </div>
+                    
+                    <h3>🐍 Kotlin/Android (Retrofit + Coroutines)</h3>
+                    <div class="code-block">
+                        <pre>// 1. Modelo de datos (Kotlin)
+data class LotteryResponse(
+    val date: String,
+    val source: String,
+    val count: Int,
+    val data: List&lt;LotteryData&gt;
+)
+
+data class LotteryData(
+    val lottery: String,
+    val items: List&lt;LotteryItem&gt;
+)
+
+data class LotteryItem(
+    val time: String,
+    val number: String,
+    val animal: String,
+    val image: String
+)
+
+// 2. Interfaz de API
+interface LotteryApi {
+    @GET("animalitos")
+    suspend fun getAnimalitos(@Query("date") date: String): LotteryResponse
+    
+    @GET("loterias")
+    suspend fun getLoterias(@Query("date") date: String): LotteryResponse
+}
+
+// 3. Uso con Coroutines
+class LotteryRepository {
+    private val api = Retrofit.Builder()
+        .baseUrl("https://loteria-api-production.up.railway.app/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+        .create(LotteryApi::class.java)
+    
+    suspend fun getAnimalitos(date: String): Result&lt;LotteryResponse&gt; {
+        return try {
+            val response = api.getAnimalitos(date)
+            Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}
+
+// 4. Uso en ViewModel
+class LotteryViewModel : ViewModel() {
+    private val repository = LotteryRepository()
+    
+    fun loadAnimalitos(date: String) {
+        viewModelScope.launch {
+            repository.getAnimalitos(date)
+                .onSuccess { data ->
+                    _lotteryData.value = data
+                }
+                .onFailure { error ->
+                    _errorMessage.value = error.message
+                }
+        }
+    }
+}</pre>
+                    </div>
+                    
+                    <h3>🌐 JavaScript/React Native</h3>
+                    <div class="code-block">
+                        <pre>// Función para obtener datos
+const fetchLotteryData = async (type, date) => {
+  try {
+    const response = await fetch(
+      `https://loteria-api-production.up.railway.app/${type}?date=${date}`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching lottery data:', error);
+    throw error;
+  }
+};
+
+// Uso en componente
+const LotteryScreen = () => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  
+  const loadData = async (type, date) => {
+    setLoading(true);
+    try {
+      const result = await fetchLotteryData(type, date);
+      setData(result);
+    } catch (error) {
+      Alert.alert('Error', 'No se pudieron cargar los datos');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  return (
+    // Tu UI aquí
+  );
+};</pre>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2>📊 Formato de Respuesta</h2>
+                    <div class="code-block">
+                        <pre>{
+  "date": "2025-01-15",
+  "source": "https://loteriadehoy.com/animalitos/resultados/",
+  "count": 149,
+  "data": [
+    {
+      "lottery": "Lotto Activo",
+      "items": [
+        {
+          "time": "08:00 AM",
+          "number": "29",
+          "animal": "Elefante",
+          "image": "https://loteriadehoy.com/dist/files_img/animalitos/elefante.webp"
+        }
+      ]
+    }
+  ]
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="note">
+                    <strong>💡 Consejos importantes:</strong>
+                    <ul>
+                        <li>La API tiene cache inteligente, las consultas son rápidas</li>
+                        <li>Usa fechas en formato YYYY-MM-DD (ISO 8601)</li>
+                        <li>Maneja errores de red apropiadamente</li>
+                        <li>Considera implementar cache local en tu app</li>
+                        <li>La API es gratuita, pero respeta los límites de uso</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </body>
     </html>
     """
