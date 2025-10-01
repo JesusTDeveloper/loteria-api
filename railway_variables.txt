@@ -1,6 +1,0 @@
-# Variables necesarias para Railway
-# Copiar y pegar en Railway Dashboard → Variables
-
-MIRROR_IMAGES=false
-USER_AGENT="LotoAPI/1.0 (+contacto@tu-dominio.com)"
-CACHE_TTL_SECONDS=300

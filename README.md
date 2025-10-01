@@ -1,71 +1,68 @@
-# Loto API (MVP)
+# Loto API
 
-API pública de resultados (Animalitos y Loterías) vía scraping de **loteriadehoy.com**.
+API pública de resultados de loterías venezolanas (Animalitos y Loterías) vía scraping de **loteriadehoy.com**.
 
-> Uso educativo / demostrativo. Respeta robots.txt y términos del sitio de origen.
+## 🚀 API en Producción
 
-## Endpoints
+**URL Base**: `https://loteria-api-production.up.railway.app`
 
-- `GET /health`
-- `GET /animalitos?date=YYYY-MM-DD`
-- `GET /loterias?date=YYYY-MM-DD`
+## 📡 Endpoints
 
-### Respuestas
-- **Animalitos**:
-  ```json
-  {
-    "date": "2025-08-07",
-    "source": "https://loteriadehoy.com/animalitos/resultados/",
-    "count": 24,
-    "data": [
-      {
-        "lottery": "Lotto Activo",
-        "items": [
-          { "time": "08:00 AM", "number": "30", "animal": "Caiman", "image": "https://cdn.tudominio.com/animalitos/caiman.webp" }
-        ]
-      }
-    ]
-  }
-  ```
+- `GET /health` - Health check
+- `GET /animalitos?date=YYYY-MM-DD` - Resultados de animalitos
+- `GET /loterias?date=YYYY-MM-DD` - Resultados de loterías
+- `GET /metrics` - Métricas de uso
 
-## Imágenes (mirroring)
+## 📱 Uso en Apps
 
-- Por defecto `MIRROR_IMAGES=false`: al detectar una imagen nueva, se sube **una sola vez** al bucket R2/S3 y la API devuelve siempre la URL del **CDN**.
-- Variables necesarias:
-  - `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`
-  - `CDN_BASE` (dominio del CDN apuntando al bucket)
-- Preseed opcional de íconos de loterías:
-  ```bash
-  python tools/preseed_lottery_icons.py
-  ```
-
-## Despliegue
-
-### Variables de entorno para producción
-
-```bash
-MIRROR_IMAGES=true
-S3_ENDPOINT=https://your-r2-endpoint.r2.cloudflarestorage.com
-S3_BUCKET=loto-static
-S3_ACCESS_KEY=your-access-key
-S3_SECRET_KEY=your-secret-key
-CDN_BASE=https://cdn.tudominio.com
-USER_AGENT="LotoAPI/1.0 (+contacto@tu-dominio.com)"
+### JavaScript/React
+```javascript
+const response = await fetch('https://loteria-api-production.up.railway.app/animalitos?date=2025-01-15');
+const data = await response.json();
 ```
 
-### Pasos de despliegue
+### Flutter/Dart
+```dart
+final response = await http.get(
+  Uri.parse('https://loteria-api-production.up.railway.app/animalitos?date=2025-01-15')
+);
+final data = json.decode(response.body);
+```
 
-1. **Configurar bucket**: Crear bucket `loto-static` en R2/S3/B2
-2. **Configurar CDN**: Configurar Cloudflare/CloudFront apuntando al bucket
-3. **Variables de entorno**: Configurar todas las variables en Render/Railway
-4. **Preseed de íconos** (opcional):
-   ```bash
-   python tools/preseed_lottery_icons.py
-   ```
-5. **Desplegar**: Push a main branch
+## 📊 Respuesta de Ejemplo
 
-### Cache y rendimiento
+```json
+{
+  "date": "2025-01-15",
+  "source": "https://loteriadehoy.com/animalitos/resultados/",
+  "count": 149,
+  "data": [
+    {
+      "lottery": "Lotto Activo",
+      "items": [
+        {
+          "time": "08:00 AM",
+          "number": "29",
+          "animal": "Elefante",
+          "image": "https://loteriadehoy.com/dist/files_img/animalitos/elefante.webp"
+        }
+      ]
+    }
+  ]
+}
+```
 
-- **Cache-Control**: `public, max-age=31536000, immutable` (1 año)
-- **CDN**: Configurar para cachear `/animalitos/*` y `/loterias/*`
+## ⚡ Características
+
+- **Cache inteligente**: TTL dinámico (fechas pasadas 24h, actual 1h)
+- **CORS habilitado**: Para apps web y móviles
+- **Métricas**: Monitoreo de uso en tiempo real
+- **Documentación**: Swagger UI en `/docs`
+
+## 🔧 Tecnologías
+
+- **FastAPI**: Framework web
+- **BeautifulSoup**: Web scraping
+- **Railway**: Hosting en la nube
+- **Python 3.11**: Runtime
 - **Warm cache**: Workflow disponible en `.github/workflows/warm.yml`
