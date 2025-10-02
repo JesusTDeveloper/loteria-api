@@ -67,6 +67,7 @@ async def home():
                 align-items: center;
                 justify-content: center;
                 flex-wrap: wrap;
+                margin-bottom: 20px;
             }
             .date-input input {
                 padding: 12px 20px;
@@ -88,8 +89,38 @@ async def home():
                 font-size: 16px;
                 cursor: pointer;
                 transition: transform 0.2s;
+                text-decoration: none;
+                display: inline-block;
             }
             .btn:hover { transform: translateY(-2px); }
+            .btn:disabled {
+                background: #ccc;
+                cursor: not-allowed;
+                transform: none;
+            }
+            .tabs {
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .tab {
+                background: #e9ecef;
+                color: #666;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.3s;
+                font-size: 16px;
+            }
+            .tab.active {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }
+            .tab:hover:not(.active) {
+                background: #dee2e6;
+            }
             .content {
                 padding: 30px;
             }
@@ -105,51 +136,14 @@ async def home():
                 border-radius: 8px;
                 margin: 20px 0;
             }
-            .results {
-                display: grid;
-                gap: 20px;
-            }
-            .lottery-card {
-                background: white;
-                border: 1px solid #e9ecef;
-                border-radius: 10px;
+            .no-date-message {
+                background: #fff3cd;
+                color: #856404;
                 padding: 20px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            }
-            .lottery-title {
-                font-size: 1.3em;
-                font-weight: bold;
-                color: #333;
-                margin-bottom: 15px;
-                padding-bottom: 10px;
-                border-bottom: 2px solid #667eea;
-            }
-            .items-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                gap: 15px;
-            }
-            .item {
-                background: #f8f9fa;
-                padding: 15px;
                 border-radius: 8px;
                 text-align: center;
-                border: 1px solid #e9ecef;
-            }
-            .item-number {
-                font-size: 1.5em;
-                font-weight: bold;
-                color: #667eea;
-                margin-bottom: 5px;
-            }
-            .item-animal {
-                color: #666;
-                font-size: 0.9em;
-            }
-            .item-time {
-                color: #999;
-                font-size: 0.8em;
-                margin-top: 5px;
+                margin: 20px 0;
+                border: 1px solid #ffeaa7;
             }
             .stats {
                 background: #e3f2fd;
@@ -189,9 +183,22 @@ async def home():
                 max-height: 500px;
                 overflow-y: auto;
             }
+            .copy-btn {
+                background: #28a745;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                cursor: pointer;
+                margin-top: 10px;
+                font-size: 14px;
+            }
+            .copy-btn:hover {
+                background: #218838;
+            }
             @media (max-width: 768px) {
                 .date-input { flex-direction: column; }
-                .items-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+                .tabs { flex-direction: column; }
                 .header h1 { font-size: 2em; }
             }
         </style>
@@ -207,9 +214,13 @@ async def home():
                 <div class="date-input">
                     <label for="date">📅 Fecha:</label>
                     <input type="date" id="date" value="">
-                    <button class="btn" onclick="loadAnimalitos()">🐾 Animalitos</button>
-                    <button class="btn" onclick="loadLoterias()">🎲 Loterías</button>
-                    <a href="/tutorial" class="btn" style="text-decoration: none; display: inline-block;">📚 Tutorial API</a>
+                    <button class="btn" onclick="loadData()" id="loadBtn" disabled>🔍 Buscar</button>
+                    <a href="/tutorial" class="btn">📚 Tutorial API</a>
+                </div>
+                
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('animalitos')" id="tab-animalitos">🐾 Animalitos</button>
+                    <button class="tab" onclick="switchTab('loterias')" id="tab-loterias">🎲 Loterías</button>
                 </div>
             </div>
             
@@ -220,69 +231,41 @@ async def home():
                 
                 <div id="error" class="error" style="display: none;"></div>
                 
+                <div id="no-date" class="no-date-message">
+                    <h3>📅 Selecciona una fecha</h3>
+                    <p>Por favor, selecciona una fecha para ver los resultados de lotería.</p>
+                </div>
+                
                 <div id="results"></div>
             </div>
         </div>
 
         <script>
-            // Datos de ejemplo para demostración
-            const sampleData = {
-                animalitos: {
-                    date: "2025-01-15",
-                    source: "https://loteriadehoy.com/animalitos/resultados/",
-                    count: 12,
-                    data: [
-                        {
-                            lottery: "Lotto Activo",
-                            items: [
-                                { time: "08:00 AM", number: "29", animal: "Elefante" },
-                                { time: "10:00 AM", number: "15", animal: "Caimán" },
-                                { time: "12:00 PM", number: "33", animal: "León" },
-                                { time: "02:00 PM", number: "07", animal: "Tigre" }
-                            ]
-                        },
-                        {
-                            lottery: "Triple Chance",
-                            items: [
-                                { time: "09:00 AM", number: "42", animal: "Jirafa" },
-                                { time: "11:00 AM", number: "18", animal: "Mono" },
-                                { time: "01:00 PM", number: "25", animal: "Oso" },
-                                { time: "03:00 PM", number: "11", animal: "Panda" }
-                            ]
-                        }
-                    ]
-                },
-                loterias: {
-                    date: "2025-01-15",
-                    source: "https://loteriadehoy.com/loterias/resultados/",
-                    count: 8,
-                    data: [
-                        {
-                            lottery: "Trio Activo",
-                            items: [
-                                { time: "08:30 AM", number: "123", animal: "Triple" },
-                                { time: "10:30 AM", number: "456", animal: "Triple" },
-                                { time: "12:30 PM", number: "789", animal: "Triple" },
-                                { time: "02:30 PM", number: "012", animal: "Triple" }
-                            ]
-                        },
-                        {
-                            lottery: "Terminal Caracas",
-                            items: [
-                                { time: "09:30 AM", number: "345", animal: "Terminal" },
-                                { time: "11:30 AM", number: "678", animal: "Terminal" },
-                                { time: "01:30 PM", number: "901", animal: "Terminal" },
-                                { time: "03:30 PM", number: "234", animal: "Terminal" }
-                            ]
-                        }
-                    ]
+            let currentTab = 'animalitos';
+            let currentData = null;
+            
+            function switchTab(tab) {
+                currentTab = tab;
+                
+                // Actualizar pestañas
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.getElementById(`tab-${tab}`).classList.add('active');
+                
+                // Si hay datos cargados, mostrarlos
+                if (currentData) {
+                    renderResults(currentData);
+                } else {
+                    // Mostrar mensaje de no fecha si no hay datos
+                    document.getElementById('results').innerHTML = '';
+                    document.getElementById('no-date').style.display = 'block';
                 }
-            };
+            }
             
             function showLoading() {
                 document.getElementById('loading').style.display = 'block';
                 document.getElementById('results').innerHTML = '';
                 document.getElementById('error').style.display = 'none';
+                document.getElementById('no-date').style.display = 'none';
             }
             
             function hideLoading() {
@@ -297,6 +280,7 @@ async def home():
             
             function renderResults(data) {
                 const resultsDiv = document.getElementById('results');
+                document.getElementById('no-date').style.display = 'none';
                 
                 // Mostrar los datos en formato JSON
                 const jsonString = JSON.stringify(data, null, 2);
@@ -307,11 +291,12 @@ async def home():
                         <p><strong>Fecha:</strong> ${data.date}</p>
                         <p><strong>Total de resultados:</strong> ${data.count}</p>
                         <p><strong>Fuente:</strong> ${data.source}</p>
-                        <p><strong>⚠️ Nota:</strong> Datos de ejemplo para demostración</p>
+                        <p><strong>Tipo:</strong> ${currentTab === 'animalitos' ? '🐾 Animalitos' : '🎲 Loterías'}</p>
                     </div>
                     <div class="json-container">
                         <h3>📄 Resultados en JSON:</h3>
-                        <pre class="json-display">${jsonString}</pre>
+                        <button class="copy-btn" onclick="copyToClipboard()">📋 Copiar JSON</button>
+                        <pre class="json-display" id="jsonContent">${jsonString}</pre>
                     </div>
                 `;
                 
@@ -319,46 +304,64 @@ async def home():
                 hideLoading();
             }
             
-            async function loadAnimalitos() {
-                showLoading();
+            async function loadData() {
                 const date = document.getElementById('date').value;
                 
+                if (!date) {
+                    showError('Por favor, selecciona una fecha');
+                    return;
+                }
+                
+                showLoading();
+                
                 try {
-                    const response = await fetch(`/animalitos?date=${date}`);
+                    const endpoint = currentTab === 'animalitos' ? '/animalitos' : '/loterias';
+                    const response = await fetch(`${endpoint}?date=${date}`);
+                    
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
+                    
                     const data = await response.json();
+                    currentData = data;
                     renderResults(data);
                 } catch (error) {
-                    showError('Error al cargar animalitos: ' + error.message);
+                    showError(`Error al cargar ${currentTab}: ${error.message}`);
                 }
             }
             
-            async function loadLoterias() {
-                showLoading();
-                const date = document.getElementById('date').value;
-                
-                try {
-                    const response = await fetch(`/loterias?date=${date}`);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    const data = await response.json();
-                    renderResults(data);
-                } catch (error) {
-                    showError('Error al cargar loterías: ' + error.message);
-                }
+            function copyToClipboard() {
+                const jsonContent = document.getElementById('jsonContent').textContent;
+                navigator.clipboard.writeText(jsonContent).then(() => {
+                    const btn = document.querySelector('.copy-btn');
+                    const originalText = btn.textContent;
+                    btn.textContent = '✅ Copiado!';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Error al copiar: ', err);
+                });
             }
             
-            // Establecer fecha actual por defecto y cargar animalitos
+            // Habilitar botón cuando se seleccione una fecha
+            document.getElementById('date').addEventListener('change', function() {
+                const loadBtn = document.getElementById('loadBtn');
+                if (this.value) {
+                    loadBtn.disabled = false;
+                } else {
+                    loadBtn.disabled = true;
+                    currentData = null;
+                    document.getElementById('results').innerHTML = '';
+                    document.getElementById('no-date').style.display = 'block';
+                }
+            });
+            
+            // Inicializar página
             window.onload = function() {
-                // Establecer fecha actual
-                const today = new Date().toISOString().split('T')[0];
-                document.getElementById('date').value = today;
-                
-                // Cargar animalitos por defecto
-                loadAnimalitos();
+                // No establecer fecha por defecto
+                document.getElementById('date').value = '';
+                document.getElementById('loadBtn').disabled = true;
             };
         </script>
     </body>
