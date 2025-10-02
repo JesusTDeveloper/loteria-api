@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 import httpx
 from bs4 import BeautifulSoup
 from .settings import BASE_URL, USER_AGENT, MIRROR_IMAGES
-from .image_store import mirror_image, slugify
+# from .image_store import mirror_image, slugify
 
 HEADERS = {"User-Agent": USER_AGENT}
 
@@ -97,13 +97,8 @@ def parse_animalitos(html: str, date_iso: str):
                 img_tag = circle.find("img")
                 if img_tag and img_tag.get("src"):
                     raw_src = img_tag["src"]
-                    if MIRROR_IMAGES:
-                        # Normaliza el nombre del animal y usa para evitar duplicados entre loterías
-                        normalized_animal = normalize_animal(animal)
-                        hint = slugify(normalized_animal)
-                        circle_img = mirror_image("animalitos", raw_src, name_hint=normalized_animal)
-                    else:
-                        circle_img = _abs(raw_src)
+                    # Simplificado: usar URL absoluta directamente
+                    circle_img = _abs(raw_src)
 
             time = h5.get_text(" ", strip=True)
 
@@ -143,10 +138,8 @@ def parse_loterias(html: str, date_iso: str):
         lottery_img = None
         if img_tag and img_tag.get("src"):
             raw_src = img_tag["src"]
-            if MIRROR_IMAGES:
-                lottery_img = mirror_image("loterias", raw_src, name_hint=lottery)
-            else:
-                lottery_img = _abs(raw_src)
+            # Simplificado: usar URL absoluta directamente
+            lottery_img = _abs(raw_src)
         if not lottery:
             continue
 

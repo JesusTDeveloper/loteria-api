@@ -869,7 +869,11 @@ def get_animalitos(date: Optional[str] = None):
         return result
     except Exception as e:
         from fastapi import HTTPException
-        raise HTTPException(status_code=500, detail=f"Error obteniendo animalitos: {str(e)}")
+        import traceback
+        error_details = f"Error obteniendo animalitos: {str(e)}"
+        print(f"Error en animalitos: {error_details}")
+        print(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=error_details)
 
 @app.get("/loterias", response_model=LoteriasResponse)
 def get_loterias(date: Optional[str] = None):
@@ -892,7 +896,11 @@ def get_loterias(date: Optional[str] = None):
         return result
     except Exception as e:
         from fastapi import HTTPException
-        raise HTTPException(status_code=500, detail=f"Error obteniendo loterías: {str(e)}")
+        import traceback
+        error_details = f"Error obteniendo loterías: {str(e)}"
+        print(f"Error en loterías: {error_details}")
+        print(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=error_details)
 
 if __name__ == "__main__":
     import uvicorn
